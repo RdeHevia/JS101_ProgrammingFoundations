@@ -1,0 +1,43 @@
+1) FUNCTION THAT RETURNS THE SUM OF 2 NUMBERS
+
+START
+
+
+
+FUNCTION sum=sum(num1,num2)=num1 + num2
+
+GET num1, num2 from user
+PRINT sum(num1,num2)
+
+END
+
+
+
+2) FUNCTION THAT TAKES AN ARRAY OF STRINGS, AND RETURNS A STRING THAT IS ALL THOSE STRINGS CONCATENATED TOGETHER
+
+START
+
+FUNCTION arrayJoin=arrayJoin(array)
+  SET i=0
+  SET string=""
+  WHILE i<length of array
+    string=string & array[i]
+  PRINT string
+
+END
+
+3) FUNCTION THAT TAKES AN ARRAY OF INTEGERS, AND RETURNS A NEW ARRAY WITH EVERY OTHER ELEMENT.
+
+START
+
+FUNCTION copyEveryOther=copyEveryOther(oldArray)
+  SET i=0
+  WHILE i<length of oldArray
+    IF 0%2=0
+      newArray[j]=oldArray[i]
+      j=j+1
+    END IF
+  END WHILE
+END FUNCTION
+
+
