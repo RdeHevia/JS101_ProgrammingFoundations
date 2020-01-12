@@ -1,0 +1,11 @@
+{
+"welcome" : "Welcome to Calculator!",
+
+"questionNbr1" : "What's the first number?",
+"questionNbr2" : "What's the second number?",
+"questionOperator" : "What operation would you like to perform?\n1) Add 2)Subtract 3) Multiply 4)Divide",
+"questionContinue" : "Do you want to do another operation?\nPress 'y' to continue. Press any other key to stop the program",
+
+"errorNumber" : "Hmm... that doesn't look like a valid number.",
+"errorOperator" : "Must choose 1, 2, 3 or 4."
+}
