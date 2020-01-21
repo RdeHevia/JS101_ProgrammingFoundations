@@ -10,8 +10,8 @@ function emptyLines (nbrOfLines) {
 
 function getFloatInput() {
   let nbr = parseFloat(rlsync.question());
-  while (Number.isNaN(nbr)) {
-    prompt('Number expected. Please enter a valid value.');
+  while (Number.isNaN(nbr) || nbr<0) {
+    prompt('Number equal or greater than 0 expected. Please enter a valid value.');
     nbr = parseFloat(rlsync.question());
   }
   return nbr;
