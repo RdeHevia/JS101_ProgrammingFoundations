@@ -45,11 +45,12 @@ let totalPay = (monthlyPay * nbrMonths).toFixed(2);
 let interestPaid = (totalPay - loan).toFixed(2);
 
 emptyLines(3);
-
 console.log(`SUMMARY:`);
 prompt(`Loan: $ ${loan}`);
 prompt(`APR: ${apr} %`);
-prompt(`Loan duration: ${nbrMonths} months\n`);
+prompt(`Loan duration: ${nbrMonths} months`);
+
+emptyLines(1);
 prompt(`Monthly payment: $ ${monthlyPay}`);
 prompt(`Total interests to be paid: $ ${interestPaid}`);
 prompt(`Total amount to be paid: $ ${totalPay}`);
