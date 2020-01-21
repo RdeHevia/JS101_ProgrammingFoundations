@@ -1,11 +1,42 @@
 {
-"welcome" : "Welcome to Calculator!",
+  
+  "welcome" : {
+    "en" : "Welcome to Calculator!",
+    "sp" : "Bienvenido a su Calculadora"
+  },
 
-"questionNbr1" : "What's the first number?",
-"questionNbr2" : "What's the second number?",
-"questionOperator" : "What operation would you like to perform?\n1) Add 2)Subtract 3) Multiply 4)Divide",
-"questionContinue" : "Do you want to do another operation?\nPress 'y' to continue. Press any other key to stop the program",
+  "questionLanguage" : "Choose language:\n  1) English\n  2) Español",
 
-"errorNumber" : "Hmm... that doesn't look like a valid number.",
-"errorOperator" : "Must choose 1, 2, 3 or 4."
+  "questionNbr1" : {
+    "en" : "What's the first number?",
+    "sp" : "Introduzca el primer numero"
+  },
+
+  "questionNbr2" : {
+    "en" : "What's the second number?",
+    "sp" : "Introduzca el segundo numero"
+  },
+
+  "questionOperator" : {
+    "en" : "What operation would you like to perform?\n1) Add 2) Subtract 3) Multiply 4) Divide",
+    "sp" : "Que operacion quiere realizar?\n1) Suma 2) Resta 3) Multiplicacion 4) Division"
+  },
+
+  "questionContinue" : {
+    "en" : "Do you want to do another operation?\nPress 'y' to continue. Press any other key to stop the program",
+    "sp" : "Quiere realizar otra operacion?\nPulse 'y' para continuar. Pulse cualquier otra tecla para terminar"
+  },
+
+
+  "errorLanguage" : "Language not supported",
+
+  "errorNumber" : {
+    "en" : "Hmm... that doesn't look like a valid number.",
+    "sp" : "Numero incorrecto"
+  },
+
+  "errorOperator" : {
+    "en" : "Must choose 1, 2, 3 or 4.",
+    "sp" : "Debe elegir 1, 2, 3 o 4"
+  }
 }

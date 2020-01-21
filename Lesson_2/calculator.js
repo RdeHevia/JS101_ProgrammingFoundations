@@ -11,36 +11,54 @@ function invalidNumber(number) {
   return number.trimStart() === '' || Number.isNaN(Number(number));
 }
 
+function languageAssign(strNumber) {
+  switch (strNumber) {
+    case '1': return 'en';
+    case '2': return 'sp';
+    default: return 'Language not supported';
+  }
+}
+
 function prompt(message) {
   console.log(`=> ${message}`);
+}
+
+prompt(MESSAGES.questionLanguage);
+let language = languageAssign(readline.question());
+console.log(language);
+
+while (language === 'Language not supported') {
+  prompt(language);
+  prompt(MESSAGES.questionLanguage);
+  language = languageAssign(readline.question());
 }
 
 let yesOrNo;
 do {
 
-  prompt(MESSAGES.welcome);
+  prompt(MESSAGES.welcome[language]);
 
-  prompt(MESSAGES.questionNbr1);
+  prompt(MESSAGES.questionNbr1[language]);
   let number1 = readline.question();
 
   while (invalidNumber(number1)) {
-    prompt(MESSAGES.errorNumber);
+    prompt(MESSAGES.errorNumber[language]);
     number1 = readline.question();
   }
 
-  prompt(MESSAGES.questionNbr2);
+  prompt(MESSAGES.questionNbr2[language]);
   let number2 = readline.question();
 
   while (invalidNumber(number2)) {
-    prompt(MESSAGES.errorNumber);
+    prompt(MESSAGES.errorNumber[language]);
     number2 = readline.question();
   }
 
-  prompt(MESSAGES.questionOperator);
+  prompt(MESSAGES.questionOperator[language]);
   let operation = readline.question();
 
   while (!['1','2','3','4'].includes(operation)) {
-    prompt(MESSAGES.errorOperator);
+    prompt(MESSAGES.errorOperator[language]);
     operation = readline.question();
   }
 
@@ -63,7 +81,7 @@ do {
 
   prompt(output);
 
-  prompt(MESSAGES.questionContinue);
+  prompt(MESSAGES.questionContinue[language]);
   yesOrNo = readline.question().toLowerCase();
 
 } while (yesOrNo === 'y');
