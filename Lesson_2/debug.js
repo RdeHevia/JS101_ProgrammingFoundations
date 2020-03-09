@@ -1,7 +1,8 @@
-let counter = 1;
-
-while (counter <= 5) {
-  //console.log(counter);
-  debugger;
-  counter += 1;
+function addName(arr, name) {
+  b = arr.concat([name]);
 }
+
+let names = ['bob', 'kim'];
+let a= addName(names, 'jim');
+console.log(names);
+console.log(b)
