@@ -1,0 +1,7 @@
+EASY1
+  1 to 5: DONE
+  6: Further exploration PENDING
+  7: DONE
+  8: Do it in the oppposite order: PENDING
+  9: Further exploration PENDING
+  10: DONE. REVIEW LS solution
