@@ -5,3 +5,12 @@ EASY1
   8: Do it in the oppposite order: PENDING
   9: Further exploration PENDING
   10: DONE. REVIEW LS solution
+  11: DONE
+EASY2
+  1: DONE. REVIEW LS solution
+  2: DONE. REVIEW LS solution
+  3. DONE.
+  4. DONE. Further exploration DONE.
+  5. DONE.
+  6. DONE. Further exploration PENDING.
+  7. DONE. Further exploration PENDING. Review LS solution PENDING.
