@@ -14,3 +14,8 @@ EASY2
   5. DONE.
   6. DONE. Further exploration PENDING.
   7. DONE. Further exploration PENDING. Review LS solution PENDING.
+  8. DONE.
+  9. DONE. Further exploration PENDING.
+  10. DONE. Review LS solution PENDING.
+  11. DONE
+  12. PENDING.
