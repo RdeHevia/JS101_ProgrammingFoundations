@@ -44,13 +44,20 @@ KEEP SCORE:
           displayBoard
           playerChoosesSquare
           computerChoosesSquare
+AI DEFENSE - ALGORITHM:
+  function findSquareInDanger (board)
+    LOOP over empty squares
+      Add an X to square(i)
+      IF detectWinner === true -> Place a O in that square
+      ELSE -> place O in a random square
 
 */
-let readline = require('readline-sync');
+let readline =  require('readline-sync');
 const INITIAL_MARKER = ' ';
 const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
 const NBR_GAMES_PER_MATCH = 2;
+const PLAYER1_CONFIG = 'Choose';   //'Human player', 'Computer', 'Choose'
 
 function prompt (message) {
   console.log(`=> ${message}`);
@@ -76,7 +83,6 @@ function emptySquares(board) {
 
 function displayBoard(board) {
   console.clear();
-
   console.log(`You are ${HUMAN_MARKER}. Computer is ${COMPUTER_MARKER}.`);
 
   console.log('');
@@ -103,7 +109,38 @@ function initializedBoard() {
   return board;
 }
 
-function playerChoosesSquare (board) {
+function choosePlayer1And2 (player1Config) {
+  let player1And2;
+  if (player1Config === 'Human player') {
+    player1And2 = ['Human player', 'Computer'];
+  } else if (player1Config === 'Computer') {
+    player1And2 = ['Computer', 'Human player'];
+  } else {
+    prompt('Choose player 1: Human Player (H) or Computer (C).');
+    let validOptions = {H: 'Human player', C: 'Computer'};
+    let userChoice = readline.question().toUpperCase();
+    if (!validOptions.hasOwnProperty(userChoice)) {
+      prompt('Invalid choice. Choose again');
+    }
+    player1And2 = choosePlayer1And2 (validOptions[userChoice]);
+  }
+  return player1And2;
+}
+
+function playerChoosesSquare (board, player) {
+  switch (player) {
+    case ('Human player'):
+      humanChoosesSquare(board);
+      break;
+    case ('Computer'):
+      computerChoosesSquare(board);
+      break;
+    default:
+      console.log('An unexpected error occurred');
+  }
+}
+
+function humanChoosesSquare (board) {
   let square;
 
   while (true) {
@@ -119,12 +156,55 @@ function playerChoosesSquare (board) {
 
 function computerChoosesSquare(board) {
 
-  let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
-  let square = emptySquares(board)[randomIndex];
+  let square = findWinningSquare(board);
+
+  if (!square) square = findSquareInDanger (board);
+
+  if (!square) square = pickCentralSquare (board);
+
+  if (!square) square = pickRandomSquare (board);
 
   board[square] = COMPUTER_MARKER;
 }
 
+function findSquareInDanger (board) {
+  let potentialBoard = Object.assign({},board);
+  let trialSquares = emptySquares(board).slice();
+  let squareInDanger = null;
+
+  trialSquares.forEach(square => {
+    potentialBoard[square] = HUMAN_MARKER;
+    if (detectWinner(potentialBoard) === 'Player') squareInDanger = square;
+    potentialBoard[square] = INITIAL_MARKER;
+  });
+  return squareInDanger;
+}
+
+function findWinningSquare (board) {
+  let potentialBoard = Object.assign({},board);
+  let trialSquares = emptySquares(board).slice();
+  let winningSquare = null;
+
+  trialSquares.forEach(square => {
+    potentialBoard[square] = COMPUTER_MARKER;
+    if (detectWinner(potentialBoard) === 'Computer') winningSquare = square;
+    potentialBoard[square] = INITIAL_MARKER;
+  });
+  return winningSquare;
+}
+
+function pickRandomSquare (board) {
+  let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
+  let randomSquare = emptySquares(board)[randomIndex];
+  return randomSquare;
+}
+
+function pickCentralSquare (board) {
+  const CENTRAL_SQUARE = '5';
+  let square = null;
+  if (emptySquares(board).includes(CENTRAL_SQUARE)) square = CENTRAL_SQUARE;
+  return square;
+}
 function boardFull(board) {
   return emptySquares(board).length === 0;
 }
@@ -132,7 +212,6 @@ function boardFull(board) {
 function someoneWon(board) {
   return !!detectWinner(board);
 }
-
 
 // eslint-disable-next-line max-lines-per-function
 function detectWinner (board) {
@@ -197,21 +276,44 @@ function nextRound () {
   prompt('Press any key for next round');
   readline.question();
 }
-while (true) {
+
+function playAgain () {
+  const ANSWER_OPTIONS = ['y', 'n'];
+  prompt(`Play again? (y or n)`);
+  let answer = readline.question().toLowerCase();
+  if (!ANSWER_OPTIONS.includes(answer)) {
+    if (ANSWER_OPTIONS.includes(answer[0])) {
+      prompt (`Did you mean ${answer[0]}? Choose again.`)
+    } else {
+      prompt('Invalid choice. Choose again');
+    }
+    answer = playAgain();
+  }
+  return answer;
+}
+
+do {
   let score = {Player: 0, Computer: 0};
   while (true) {
+    console.clear();
     let board = initializedBoard();
+    let [player1, player2] = choosePlayer1And2(PLAYER1_CONFIG);
+    displayBoard(board);
+    showScore(score);
     while (true) {
+
+      playerChoosesSquare(board, player1);
       displayBoard(board);
-
-      playerChoosesSquare(board);
       if (someoneWon(board) || boardFull(board)) break;
+      showScore(score);
 
-      computerChoosesSquare(board);
+      playerChoosesSquare(board, player2);
+      displayBoard(board);
       if (someoneWon(board) || boardFull(board)) break;
+      showScore(score);
     }
 
-    displayBoard(board);
+    //displayBoard(board);
 
     if (someoneWon(board)) {
       scoreTracker(score,detectWinner(board));
@@ -229,10 +331,6 @@ while (true) {
     }
   }
 
-  prompt('Play again? (y or n)');
-  let answer = readline.question().toLowerCase()[0];
-  if (answer !== 'y') break;
-
-}
+} while (playAgain() === 'y');
 
 prompt('Thanks for playing Tic Tac Toe!');
