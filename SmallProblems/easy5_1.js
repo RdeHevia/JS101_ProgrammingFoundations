@@ -16,7 +16,18 @@ function dms (angleInDegrees) {
   let minutes = Math.round(Math.floor(rest * 60));
   rest = (rest * 60) - minutes;
   let seconds = Math.round(Math.floor(rest * 60));
-  return ''.concat(degrees,`°`, minutes, `'`, seconds, `"`);
+  return ''.concat(
+    degrees,`°`, padZeros(minutes.toString()), `'`,
+    padZeros(seconds.toString()), `"`
+  );
+}
+
+function padZeros (numString) {
+  if (numString === '0') {
+    return numString + '0';
+  } else {
+    return numString;
+  }
 }
 
 console.log(dms(30));           // 30°00'00"
