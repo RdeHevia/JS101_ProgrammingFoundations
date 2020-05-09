@@ -112,9 +112,9 @@ function initializedBoard() {
 function choosePlayer1And2 (player1Config) {
   let player1And2;
   if (player1Config === 'Human player') {
-    player1And2 = ['Human player', 'Computer'];
+    player1And2 = {1: 'Human player', 2: 'Computer'};
   } else if (player1Config === 'Computer') {
-    player1And2 = ['Computer', 'Human player'];
+    player1And2 = {2: 'Human player', 1: 'Computer'};
   } else {
     prompt('Choose player 1: Human Player (H) or Computer (C).');
     let validOptions = {H: 'Human player', C: 'Computer'};
@@ -126,7 +126,13 @@ function choosePlayer1And2 (player1Config) {
   }
   return player1And2;
 }
-
+function alternatePlayer (currentPlayer, player1And2) {
+  if (currentPlayer === player1And2['1']) {
+    return player1And2['2'];
+  } else {
+    return player1And2['1'];
+  }
+}
 function playerChoosesSquare (board, player) {
   switch (player) {
     case ('Human player'):
@@ -241,7 +247,7 @@ function detectWinner (board) {
   return null;
 }
 
-function scoreTracker (score, winner) {
+function updateScore (score, winner) {
   score[winner] += 1;
 }
 
@@ -283,7 +289,7 @@ function playAgain () {
   let answer = readline.question().toLowerCase();
   if (!ANSWER_OPTIONS.includes(answer)) {
     if (ANSWER_OPTIONS.includes(answer[0])) {
-      prompt (`Did you mean ${answer[0]}? Choose again.`)
+      prompt (`Did you mean ${answer[0]}? Choose again.`);
     } else {
       prompt('Invalid choice. Choose again');
     }
@@ -297,26 +303,21 @@ do {
   while (true) {
     console.clear();
     let board = initializedBoard();
-    let [player1, player2] = choosePlayer1And2(PLAYER1_CONFIG);
+    let player1And2 = choosePlayer1And2(PLAYER1_CONFIG);
+    let currentPlayer = player1And2['1'];
     displayBoard(board);
     showScore(score);
     while (true) {
-
-      playerChoosesSquare(board, player1);
+      playerChoosesSquare(board, currentPlayer);
       displayBoard(board);
       if (someoneWon(board) || boardFull(board)) break;
-      showScore(score);
 
-      playerChoosesSquare(board, player2);
-      displayBoard(board);
-      if (someoneWon(board) || boardFull(board)) break;
       showScore(score);
+      currentPlayer = alternatePlayer(currentPlayer, player1And2);
     }
 
-    //displayBoard(board);
-
     if (someoneWon(board)) {
-      scoreTracker(score,detectWinner(board));
+      updateScore (score,detectWinner(board));
       prompt(`${detectWinner(board)} won!\n`);
       showScore(score);
     } else {
