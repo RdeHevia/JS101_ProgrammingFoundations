@@ -160,9 +160,9 @@ function humanChoosesSquare (board) {
 
 function computerChoosesSquare(board) {
 
-  let square = findWinningSquare(board);
+  let square = findWinningSquare (board, 'computer');
 
-  if (!square) square = findSquareInDanger (board);
+  if (!square) square = findWinningSquare (board, 'human');
 
   if (!square) square = pickCentralSquare (board);
 
@@ -171,40 +171,14 @@ function computerChoosesSquare(board) {
   board[square] = MARKER['computer'];
 }
 
-function findSquareInDanger (board) {
-  let potentialBoard = Object.assign({},board);
-  let trialSquares = emptySquares(board).slice();
-  let squareInDanger = null;
-
-  trialSquares.forEach(square => {
-    potentialBoard[square] = MARKER['human'];
-    if (detectWinner(potentialBoard) === 'human') squareInDanger = square;
-    potentialBoard[square] = MARKER['initial'];
-  });
-  return squareInDanger;
-}
-
-function findWinningSquare2 (board, player) {
-  let potentialBoard = Object.assign({},board);
-  let trialSquares = emptySquares(board).slice();
-  let squareInDanger = null;
-
-  trialSquares.forEach(square => {
-    potentialBoard[square] = MARKER['human'];
-    if (detectWinner(potentialBoard) === 'human') squareInDanger = square;
-    potentialBoard[square] = MARKER['initial'];
-  });
-  return squareInDanger;
-}
-
-function findWinningSquare (board) {
+function findWinningSquare (board, player) {
   let potentialBoard = Object.assign({},board);
   let trialSquares = emptySquares(board).slice();
   let winningSquare = null;
 
   trialSquares.forEach(square => {
-    potentialBoard[square] = MARKER['computer'];
-    if (detectWinner(potentialBoard) === 'computer') winningSquare = square;
+    potentialBoard[square] = MARKER[player];
+    if (detectWinner(potentialBoard) === player) winningSquare = square;
     potentialBoard[square] = MARKER['initial'];
   });
   return winningSquare;
