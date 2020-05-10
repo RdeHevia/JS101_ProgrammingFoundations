@@ -53,11 +53,9 @@ AI DEFENSE - ALGORITHM:
 
 */
 let readline =  require('readline-sync');
-const INITIAL_MARKER = ' ';
-const HUMAN_MARKER = 'X';
-const COMPUTER_MARKER = 'O';
+const MARKER = {initial:' ', human:'X', computer:'O'};
 const NBR_GAMES_PER_MATCH = 2;
-const PLAYER1_CONFIG = 'Choose';   //'Human player', 'Computer', 'Choose'
+const PLAYER1_CONFIG = 'choose';   //'Human', 'computer', 'choose'
 
 function prompt (message) {
   console.log(`=> ${message}`);
@@ -78,12 +76,12 @@ function joinOr (array, separator = ', ', endSeparator = 'or') {
 }
 
 function emptySquares(board) {
-  return Object.keys(board).filter(key => board[key] === INITIAL_MARKER);
+  return Object.keys(board).filter(key => board[key] === MARKER['initial']);
 }
 
 function displayBoard(board) {
   console.clear();
-  console.log(`You are ${HUMAN_MARKER}. Computer is ${COMPUTER_MARKER}.`);
+  console.log(`You are ${MARKER['human']}. Computer is ${MARKER['computer']}.`);
 
   console.log('');
   console.log('     |     |');
@@ -103,7 +101,7 @@ function displayBoard(board) {
 function initializedBoard() {
   let board = {};
   for (let square = 1; square <= 9; square += 1) {
-    board[String(square)] = INITIAL_MARKER;
+    board[String(square)] = MARKER['initial'];
   }
 
   return board;
@@ -111,13 +109,13 @@ function initializedBoard() {
 
 function choosePlayer1And2 (player1Config) {
   let player1And2;
-  if (player1Config === 'Human player') {
-    player1And2 = {1: 'Human player', 2: 'Computer'};
-  } else if (player1Config === 'Computer') {
-    player1And2 = {2: 'Human player', 1: 'Computer'};
+  if (player1Config === 'human') {
+    player1And2 = {1: 'human', 2: 'computer'};
+  } else if (player1Config === 'computer') {
+    player1And2 = {2: 'human', 1: 'computer'};
   } else {
     prompt('Choose player 1: Human Player (H) or Computer (C).');
-    let validOptions = {H: 'Human player', C: 'Computer'};
+    let validOptions = {H: 'human', C: 'computer'};
     let userChoice = readline.question().toUpperCase();
     if (!validOptions.hasOwnProperty(userChoice)) {
       prompt('Invalid choice. Choose again');
@@ -135,10 +133,10 @@ function alternatePlayer (currentPlayer, player1And2) {
 }
 function playerChoosesSquare (board, player) {
   switch (player) {
-    case ('Human player'):
+    case ('human'):
       humanChoosesSquare(board);
       break;
-    case ('Computer'):
+    case ('computer'):
       computerChoosesSquare(board);
       break;
     default:
@@ -157,7 +155,7 @@ function humanChoosesSquare (board) {
 
     prompt(`Sorry, that's not a valid choice.`);
   }
-  board[square] = HUMAN_MARKER;
+  board[square] = MARKER['human'];
 }
 
 function computerChoosesSquare(board) {
@@ -170,7 +168,7 @@ function computerChoosesSquare(board) {
 
   if (!square) square = pickRandomSquare (board);
 
-  board[square] = COMPUTER_MARKER;
+  board[square] = MARKER['computer'];
 }
 
 function findSquareInDanger (board) {
@@ -179,9 +177,22 @@ function findSquareInDanger (board) {
   let squareInDanger = null;
 
   trialSquares.forEach(square => {
-    potentialBoard[square] = HUMAN_MARKER;
-    if (detectWinner(potentialBoard) === 'Player') squareInDanger = square;
-    potentialBoard[square] = INITIAL_MARKER;
+    potentialBoard[square] = MARKER['human'];
+    if (detectWinner(potentialBoard) === 'human') squareInDanger = square;
+    potentialBoard[square] = MARKER['initial'];
+  });
+  return squareInDanger;
+}
+
+function findWinningSquare2 (board, player) {
+  let potentialBoard = Object.assign({},board);
+  let trialSquares = emptySquares(board).slice();
+  let squareInDanger = null;
+
+  trialSquares.forEach(square => {
+    potentialBoard[square] = MARKER['human'];
+    if (detectWinner(potentialBoard) === 'human') squareInDanger = square;
+    potentialBoard[square] = MARKER['initial'];
   });
   return squareInDanger;
 }
@@ -192,9 +203,9 @@ function findWinningSquare (board) {
   let winningSquare = null;
 
   trialSquares.forEach(square => {
-    potentialBoard[square] = COMPUTER_MARKER;
-    if (detectWinner(potentialBoard) === 'Computer') winningSquare = square;
-    potentialBoard[square] = INITIAL_MARKER;
+    potentialBoard[square] = MARKER['computer'];
+    if (detectWinner(potentialBoard) === 'computer') winningSquare = square;
+    potentialBoard[square] = MARKER['initial'];
   });
   return winningSquare;
 }
@@ -231,17 +242,17 @@ function detectWinner (board) {
     let [sq1, sq2, sq3] = winningLines[line];
 
     if (
-      board[sq1] === HUMAN_MARKER &&
-      board[sq2] === HUMAN_MARKER &&
-      board[sq3] === HUMAN_MARKER
+      board[sq1] === MARKER['human'] &&
+      board[sq2] === MARKER['human'] &&
+      board[sq3] === MARKER['human']
     ) {
-      return 'Player';
+      return 'human';
     } else if (
-      board[sq1] === COMPUTER_MARKER &&
-      board[sq2] === COMPUTER_MARKER &&
-      board[sq3] === COMPUTER_MARKER
+      board[sq1] === MARKER['computer'] &&
+      board[sq2] === MARKER['computer'] &&
+      board[sq3] === MARKER['computer']
     ) {
-      return 'Computer';
+      return 'computer';
     }
   }
   return null;
@@ -253,15 +264,15 @@ function updateScore (score, winner) {
 
 function showScore (score) {
   prompt(`SCORE (PLAYER : COMPUTER)`);
-  prompt(`${score['Player']} : ${score['Computer']}\n`);
+  prompt(`${score['human']} : ${score['computer']}\n`);
 }
 
 function detectMatchWinner (score) {
   if (matchEnded(score)) {
-    if (score['Player'] > score['Computer']) {
-      return 'Player';
+    if (score['human'] > score['computer']) {
+      return 'human';
     } else {
-      return 'Computer';
+      return 'computer';
     }
   } else {
     return null;
@@ -269,8 +280,8 @@ function detectMatchWinner (score) {
 }
 function matchEnded (score) {
   if (
-    score['Player'] >= NBR_GAMES_PER_MATCH ||
-    score['Computer'] >= NBR_GAMES_PER_MATCH
+    score['human'] >= NBR_GAMES_PER_MATCH ||
+    score['computer'] >= NBR_GAMES_PER_MATCH
   ) {
     return true;
   } else {
@@ -299,7 +310,7 @@ function playAgain () {
 }
 
 do {
-  let score = {Player: 0, Computer: 0};
+  let score = {human: 0, computer: 0};
   while (true) {
     console.clear();
     let board = initializedBoard();
