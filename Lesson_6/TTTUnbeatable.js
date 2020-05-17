@@ -154,37 +154,27 @@ function pickCentralSquare (board) {
   return square;
 }
 
-// eslint-disable-next-line max-lines-per-function
+
 function computerBestMove (board) {
 
   let bestMove = findWinningSquare (board, 'computer');
   if (bestMove !== null) {
     return bestMove;
-  }
-  let trialBoard = Object.assign({},board);
-  let trialSquares = emptySquares(board);
-  let squareMiniMaxValues = [];
-  let recursionLevel = 1;
+  } else {
+    let recursionLevel = 0;
+    let boardValues = boardMiniMaxValues(board,'computer',recursionLevel);
 
-  trialSquares.forEach(square => {
-    trialBoard[square] = MARKER ['computer'];
-    let squareValue = miniMax (trialBoard, 'human', recursionLevel);
-    squareMiniMaxValues.push(squareValue);
-    trialBoard[square] = MARKER ['initial'];
-  });
-  let maxValue = boardMiniMaxValue(squareMiniMaxValues,+1);
-  let bestMoveIndex = squareMiniMaxValues.findIndex(num => num === maxValue);
-  /*
-  console.log(`LEVEL: ${recursionLevel}; ${squareMiniMaxValues}`);
-  console.log(maxValue);
-  console.log(bestMoveIndex);
-  */
-  bestMove = trialSquares[bestMoveIndex];
-  return bestMove;
+    let maxFactor = +1;
+    let maxValue = calculateMaxOrMin(boardValues, maxFactor);
+
+    let bestMoveIndex = boardValues.findIndex(num => num === maxValue);
+
+    bestMove = emptySquares(board)[bestMoveIndex];
+    return bestMove;
+  }
 }
 
-// eslint-disable-next-line max-lines-per-function
-function miniMax (board, player, recursionLevel) {
+function squareMiniMaxValue (board, player, recursionLevel) {
   const PLAYER_VALUE = {human:-1, tie: 0, computer: +1};
 
   if (findWinningSquare(board,player) !== null) {
@@ -192,42 +182,37 @@ function miniMax (board, player, recursionLevel) {
   } else if (boardFull(board)) {
     return 0;
   } else {
-    let trialBoard = Object.assign({},board);
-    let trialSquares = emptySquares(board);
-    let squareMiniMaxValues = [];
-    recursionLevel += 1;
+    let boardValues = boardMiniMaxValues (board, player, recursionLevel);
 
-    trialSquares.forEach(square => {
-      trialBoard[square] = MARKER[player];
-      let squareValue = miniMax (trialBoard, alternatePlayer(player), recursionLevel);
-      squareMiniMaxValues.push(squareValue);
-      /*
-      console.log(recursionLevel);
-      console.log(squareValue);
-      displayBoard(trialBoard);
-      */
-      trialBoard[square] = MARKER ['initial'];
-
-      //readline.question();
-    });
-    if (recursionLevel === 2) {
-      let a = boardMiniMaxValue(squareMiniMaxValues, PLAYER_VALUE[player]);
-      console.log(recursionLevel);
-      console.log(a);
-      console.log(squareMiniMaxValues);
-    }
-    //let a = boardMiniMaxValue(squareMiniMaxValues, PLAYER_VALUE[player])
-    //console.log(`Level: ${recursionLevel}; ${a}`);
-    return boardMiniMaxValue(squareMiniMaxValues, PLAYER_VALUE[player]);
-
+    let maxOrMinFactor = PLAYER_VALUE[player];
+    return calculateMaxOrMin(boardValues, maxOrMinFactor);
   }
 }
 
-function boardMiniMaxValue (squareValues, miniMaxFactor) {
+function calculateMaxOrMin (squareValues, miniMaxFactor) {
   // miniMaxFactor === +1 -> maximum
   // miniMaxFactor === -1 -> minimum
   let sortedArray = squareValues.slice().sort((a,b) => miniMaxFactor * (b - a));
   return sortedArray[0];
+}
+
+function boardMiniMaxValues(board, player, recursionLevel) {
+  let trialBoard = Object.assign({},board);
+  let trialSquares = emptySquares(board);
+  let squareMiniMaxValues = [];
+  recursionLevel += 1;
+
+  trialSquares.forEach(square => {
+    trialBoard[square] = MARKER[player];
+
+    let squareValue = squareMiniMaxValue (
+      trialBoard, alternatePlayer(player), recursionLevel
+    );
+    squareMiniMaxValues.push(squareValue);
+
+    trialBoard[square] = MARKER ['initial'];
+  });
+  return squareMiniMaxValues;
 }
 
 function boardFull(board) {
