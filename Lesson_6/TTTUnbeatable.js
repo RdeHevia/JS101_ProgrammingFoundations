@@ -1,11 +1,9 @@
-/* eslint-disable max-statements */
-
 let readline =  require('readline-sync');
-const MARKER = {initial:' ', human:'X', computer:'O'};
-const NBR_GAMES_PER_MATCH = 2;
-let player1And2 = {1:'human', 2:'computer'};
-const PLAYER1_CONFIG = 'choose';   //'Human', 'computer', 'choose'
 
+const MARKER = {initial:' ', human:'X', computer:'O'};
+const NBR_GAMES_PER_MATCH = 5;
+const PLAYER1_CONFIG = 'choose';   //'human', 'computer', 'choose'
+const DIFFICULTY_CONFIG = 'choose'; //'easy', 'medium', 'impossible', 'choose'
 function prompt (message) {
   console.log(`=> ${message}`);
 }
@@ -29,7 +27,7 @@ function emptySquares(board) {
 }
 
 function displayBoard(board) {
-  //console.clear();
+  console.clear();
   console.log(`You are ${MARKER['human']}. Computer is ${MARKER['computer']}.`);
 
   console.log('');
@@ -56,23 +54,37 @@ function initializedBoard() {
   return board;
 }
 
-function choosePlayer1And2 (player1Config) {
-  let player1And2;
-  if (player1Config === 'human') {
-    player1And2 = {1: 'human', 2: 'computer'};
-  } else if (player1Config === 'computer') {
-    player1And2 = {2: 'human', 1: 'computer'};
+function chooseDifficultyLevel (difficultyConfig) {
+  let difficulty;
+  if (['easy','medium','impossible'].includes(difficultyConfig)) {
+    difficulty = difficultyConfig;
+  } else {
+    prompt('Choose difficulty level: 1) Easy, 2) Medium, 3) Impossible.');
+    let validOptions = {1:'easy', 2:'medium', 3:'impossible'};
+    let userChoice = readline.question().toUpperCase();
+    if (!validOptions.hasOwnProperty(userChoice)) {
+      prompt('Invalid choice. Choose again.');
+    }
+    difficulty = chooseDifficultyLevel (validOptions[userChoice]);
+  }
+  return difficulty;
+}
+function choosePlayer1 (player1Config) {
+  let player1;
+  if (['human', 'computer'].includes(player1Config)) {
+    player1 = player1Config;
   } else {
     prompt('Choose player 1: Human Player (H) or Computer (C).');
     let validOptions = {H: 'human', C: 'computer'};
     let userChoice = readline.question().toUpperCase();
     if (!validOptions.hasOwnProperty(userChoice)) {
-      prompt('Invalid choice. Choose again');
+      prompt('Invalid choice. Choose again.');
     }
-    player1And2 = choosePlayer1And2 (validOptions[userChoice]);
+    player1 = choosePlayer1 (validOptions[userChoice]);
   }
-  return player1And2;
+  return player1;
 }
+
 function alternatePlayer (currentPlayer) {
   if (currentPlayer === 'human') {
     return 'computer';
@@ -80,13 +92,14 @@ function alternatePlayer (currentPlayer) {
     return 'human';
   }
 }
-function playerChoosesSquare (board, player) {
+
+function playerChoosesSquare (board, player, difficulty) {
   switch (player) {
     case ('human'):
       humanChoosesSquare(board);
       break;
     case ('computer'):
-      computerChoosesSquare(board);
+      computerChoosesSquare(board, difficulty);
       break;
     default:
       console.log('An unexpected error occurred');
@@ -107,21 +120,26 @@ function humanChoosesSquare (board) {
   board[square] = MARKER['human'];
 }
 
-function computerChoosesSquare(board) {
+// eslint-disable-next-line max-lines-per-function
+function computerChoosesSquare(board, difficulty) {
   let square;
-  if (emptySquares(board).length === 9) {
-    square = pickCentralSquare(board);
-  } else {
-    square = computerBestMove (board);
+  switch (difficulty) {
+    case 'easy':
+      square = pickRandomSquare (board);
+      break;
+    case 'medium':
+      square = findWinningSquare (board, 'computer');
+      if (!square) square = findWinningSquare (board, 'human');
+      if (!square) square = pickCentralSquare (board);
+      if (!square) square = pickRandomSquare (board);
+      break;
+    case 'impossible':
+      if (emptySquares(board).length === 9) {
+        square = pickCentralSquare(board);
+      } else {
+        square = computerBestMove (board);
+      }
   }
-  /*let square = findWinningSquare (board, 'computer');
-
-  if (!square) square = findWinningSquare (board, 'human');
-
-  if (!square) square = pickCentralSquare (board);
-
-  if (!square) square = pickRandomSquare (board);
-  */
   board[square] = MARKER['computer'];
 }
 
@@ -153,7 +171,6 @@ function pickCentralSquare (board) {
   if (emptySquares(board).includes(CENTRAL_SQUARE)) square = CENTRAL_SQUARE;
   return square;
 }
-
 
 function computerBestMove (board) {
 
@@ -285,6 +302,7 @@ function matchEnded (score) {
 function nextRound () {
   prompt('Press any key for next round');
   readline.question();
+  console.clear();
 }
 
 function playAgain () {
@@ -303,16 +321,21 @@ function playAgain () {
 }
 
 do {
+  console.clear();
+  console.log('TIC-TAC-TOE\n\n')
+
+  let difficulty = chooseDifficultyLevel(DIFFICULTY_CONFIG);
+  prompt(`You chose: ${difficulty.toUpperCase()}.\nGood luck!\n`);
   let score = {human: 0, computer: 0};
+
   while (true) {
-    //console.clear();
     let board = initializedBoard();
-    let player1And2 = choosePlayer1And2(PLAYER1_CONFIG);
-    let currentPlayer = player1And2['1'];
+    let currentPlayer = choosePlayer1(PLAYER1_CONFIG);
     displayBoard(board);
     showScore(score);
+
     while (true) {
-      playerChoosesSquare(board, currentPlayer);
+      playerChoosesSquare(board, currentPlayer, difficulty);
       displayBoard(board);
       if (someoneWon(board) || boardFull(board)) break;
 
