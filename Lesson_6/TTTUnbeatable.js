@@ -1,7 +1,7 @@
 let readline =  require('readline-sync');
 
 const MARKER = {initial:' ', human:'X', computer:'O'};
-const NBR_GAMES_PER_MATCH = 5;
+const NBR_GAMES_PER_MATCH = 2;
 const PLAYER1_CONFIG = 'choose';   //'human', 'computer', 'choose'
 const DIFFICULTY_CONFIG = 'choose'; //'easy', 'medium', 'impossible', 'choose'
 function prompt (message) {
@@ -120,33 +120,46 @@ function humanChoosesSquare (board) {
   board[square] = MARKER['human'];
 }
 
-// eslint-disable-next-line max-lines-per-function
 function computerChoosesSquare(board, difficulty) {
   let square;
   switch (difficulty) {
     case 'easy':
-      square = pickRandomSquare (board);
+      square = computerChoosesSquareEasyDifficulty(board);
       break;
     case 'medium':
-      square = findWinningSquare (board, 'computer');
-      if (!square) square = findWinningSquare (board, 'human');
-      if (!square) square = pickCentralSquare (board);
-      if (!square) square = pickRandomSquare (board);
+      square = computerChoosesSquareMediumDifficulty(board);
       break;
     case 'impossible':
-      if (emptySquares(board).length === 9) {
-        square = pickCentralSquare(board);
-      } else {
-        square = computerBestMove (board);
-      }
+      square = computerChoosesSquareImpossibleDifficulty(board);
   }
   board[square] = MARKER['computer'];
+}
+
+function computerChoosesSquareEasyDifficulty (board) {
+  return pickRandomSquare (board);
+}
+
+function computerChoosesSquareMediumDifficulty (board) {
+  let square = findWinningSquare (board, 'computer');
+  if (!square) square = findWinningSquare (board, 'human');
+  if (!square) square = pickCentralSquare (board);
+  if (!square) square = pickRandomSquare (board);
+  return square;
+}
+
+function computerChoosesSquareImpossibleDifficulty (board) {
+  if (emptySquares(board).length === 9) {
+    return pickCentralSquare(board);
+  } else {
+    return computerBestMove (board);
+  }
 }
 
 function findWinningSquare (board, player) {
   let potentialBoard = Object.assign({},board);
   let trialSquares = emptySquares(board).slice();
   let winningSquare = null;
+
   for (let idx = 0; idx < trialSquares.length; idx += 1) {
     let square = trialSquares[idx];
     potentialBoard[square] = MARKER[player];
@@ -240,7 +253,7 @@ function someoneWon(board) {
   return !!detectWinner(board);
 }
 
-// eslint-disable-next-line max-lines-per-function
+
 function detectWinner (board) {
   let winningLines = [
     [1, 2, 3], [4, 5, 6], [7, 8, 9],
@@ -249,32 +262,41 @@ function detectWinner (board) {
   ];
 
   for (let line = 0; line < winningLines.length; line++) {
-    let [sq1, sq2, sq3] = winningLines[line];
-
-    if (
-      board[sq1] === MARKER['human'] &&
-      board[sq2] === MARKER['human'] &&
-      board[sq3] === MARKER['human']
-    ) {
+    if (playerWon('human',board,winningLines[line])) {
       return 'human';
-    } else if (
-      board[sq1] === MARKER['computer'] &&
-      board[sq2] === MARKER['computer'] &&
-      board[sq3] === MARKER['computer']
-    ) {
+    } else if (playerWon('computer',board,winningLines[line])) {
       return 'computer';
     }
   }
   return null;
+
+}
+
+function playerWon (player,board, winningLine) {
+  let [sq1, sq2, sq3] = winningLine;
+
+  return (
+    board[sq1] === MARKER[player] &&
+    board[sq2] === MARKER[player] &&
+    board[sq3] === MARKER[player]
+  );
 }
 
 function updateScore (score, winner) {
-  score[winner] += 1;
+  if (winner !== null) score[winner] += 1;
 }
 
 function showScore (score) {
   prompt(`SCORE (PLAYER : COMPUTER)`);
   prompt(`${score['human']} : ${score['computer']}\n`);
+}
+
+function displayWinner (board) {
+  if (someoneWon(board)) {
+    prompt(`${detectWinner(board)} won!\n`);
+  } else {
+    prompt(`It's a tie!\n`);
+  }
 }
 
 function detectMatchWinner (score) {
@@ -289,14 +311,11 @@ function detectMatchWinner (score) {
   }
 }
 function matchEnded (score) {
-  if (
+  return (
     score['human'] >= NBR_GAMES_PER_MATCH ||
     score['computer'] >= NBR_GAMES_PER_MATCH
-  ) {
-    return true;
-  } else {
-    return false;
-  }
+  );
+
 }
 
 function nextRound () {
@@ -307,8 +326,10 @@ function nextRound () {
 
 function playAgain () {
   const ANSWER_OPTIONS = ['y', 'n'];
+
   prompt(`Play again? (y or n)`);
   let answer = readline.question().toLowerCase();
+
   if (!ANSWER_OPTIONS.includes(answer)) {
     if (ANSWER_OPTIONS.includes(answer[0])) {
       prompt (`Did you mean ${answer[0]}? Choose again.`);
@@ -322,7 +343,7 @@ function playAgain () {
 
 do {
   console.clear();
-  console.log('TIC-TAC-TOE\n\n')
+  console.log('TIC-TAC-TOE\n\n');
 
   let difficulty = chooseDifficultyLevel(DIFFICULTY_CONFIG);
   prompt(`You chose: ${difficulty.toUpperCase()}.\nGood luck!\n`);
@@ -343,14 +364,10 @@ do {
       currentPlayer = alternatePlayer(currentPlayer);
     }
 
-    if (someoneWon(board)) {
-      updateScore (score,detectWinner(board));
-      prompt(`${detectWinner(board)} won!\n`);
-      showScore(score);
-    } else {
-      prompt(`It's a tie!\n`);
-      showScore(score);
-    }
+    updateScore (score,detectWinner(board));
+    displayWinner(board);
+    showScore(score);
+
     if (matchEnded(score)) {
       prompt(`${detectMatchWinner(score)} won the match!\n`);
       break;
