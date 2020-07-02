@@ -7,14 +7,21 @@ function prompt (message) {
 function welcomeScreen () {
   console.clear();
   console.log('WELCOME TO THE 21 GAME!\n');
-  prompt('Please press any key to start...');
+  console.log('The player that gets closer to 21 without going over wins!\n\n');
+  prompt('Are you ready? Please press any key to start...');
   readline.question();
   console.clear();
 }
 
-function displayCards (playerCards, dealerCards) {
-  prompt(`You cards: ${playerCards.join(', ')}`);
-  prompt(`Dealer shows: ${dealerCards[0]}`);
+function displayCards (playerCards, dealerCards, showAllDealerCards = false) {
+  console.log(`CARDS:`);
+  prompt(`   You: ${playerCards.join(', ')}`);
+  if (showAllDealerCards) {
+    prompt(`Dealer: ${dealerCards.join(', ')}`);
+  } else {
+    prompt(`Dealer: ${dealerCards[0]}, ?`);
+  }
+  console.log('\n');
 }
 
 function initializeDeck () {
@@ -42,6 +49,9 @@ function dealCards (deck, nbrOfCards) {
   return dealedCards;
 }
 
+function updateHand(currentHand, deck, nbrOfCardsDealed) {
+  return [].concat(currentHand, dealCards(deck,nbrOfCardsDealed));
+}
 // eslint-disable-next-line max-lines-per-function
 function handValue (cards) {
   const CARD_VALUES = {
@@ -75,6 +85,22 @@ function separateAces (cards) {
   return [Aces,noAces];
 }
 
+function playerHitsOrStays() {
+  console.log(`PLAYER'S TURN:`);
+  prompt(`Do you want to hit (h) or stay (s) ?`);
+  let choice = readline.question();
+  switch (choice) {
+    case 'h':
+      return 'hit';
+    case 's':
+      return 'stay';
+    default:
+      prompt('Invalid choice. Please choose again.');
+      return playerHitsOrStays();
+  }
+}
+
+
 function isBusted(handValue) {
   return handValue > 21;
 }
@@ -89,59 +115,105 @@ function closerTo21(playerHandValue, dealerHandValue) {
   }
 }
 
-let player = {};
-let dealer = {};
-let winner = '';
+function findWinner (playerHandValue, dealerHandValue) {
+  if (isBusted(playerHandValue)) {
+    return 'dealer';
+  } else if (isBusted(dealerHandValue)) {
+    return 'player';
+  } else {
+    return closerTo21(playerHandValue, dealerHandValue);
+  }
+}
+
+function displayWinner (winner) {
+  if (winner === 'none') {
+    prompt (`IT'S A TIE!`);
+  } else {
+    prompt(`${winner.toUpperCase()} WON!`);
+  }
+}
+
+function displayHandsValue (playerHandValue, dealerHandValue) {
+  let playerBustedPrompt = '';
+  let dealerBustedPrompt = '';
+  if (isBusted(playerHandValue)) {
+    playerBustedPrompt = '(busted)';
+  } else if (isBusted(dealerHandValue)) {
+    dealerBustedPrompt = '(busted)';
+  }
+  console.log(`FINAL HAND VALUES:`);
+  prompt(`   You:    ${playerHandValue} ${playerBustedPrompt}`);
+  prompt(`Dealer: ${dealerHandValue}  ${dealerBustedPrompt}`);
+  console.log('');
+}
+
+function playAgain () {
+  const ANSWER_OPTIONS = ['y', 'n'];
+
+  prompt(`Play again? (y or n)`);
+  let answer = readline.question().toLowerCase();
+
+  if (!ANSWER_OPTIONS.includes(answer)) {
+    if (ANSWER_OPTIONS.includes(answer[0])) {
+      prompt (`Did you mean ${answer[0]}? Choose again.`);
+    } else {
+      prompt('Invalid choice. Choose again');
+    }
+    answer = playAgain();
+  }
+  return answer;
+}
 
 welcomeScreen();
-let deck = initializeDeck();
-let cardsDealed = 2;
-player.cards = dealCards(deck,cardsDealed);
-player.handValue = handValue(player.cards);
+do {
+  console.clear();
 
-dealer.cards = dealCards(deck, cardsDealed);
-dealer.handValue = handValue(dealer.cards);
-displayCards(player.cards, dealer.cards);
-cardsDealed = 1;
+  let player = {header: 'PLAYER'};
+  let dealer = {header: 'DEALER'};
+  let gameOver = false;
+  let deck = initializeDeck();
+  let cardsDealed = 2;
 
-while (true) {
-  console.log(`PLAYER'S TURN:`);
-  prompt(`Do you want to hit (h) or stay (s) ?`);
-  let playerChoice = readline.question();
-  if (playerChoice === 's') break;
-
-  player.cards.push(dealCards(deck,cardsDealed));
+  player.cards = dealCards(deck,cardsDealed);
   player.handValue = handValue(player.cards);
+
+  dealer.cards = dealCards(deck, cardsDealed);
+  dealer.handValue = handValue(dealer.cards);
   displayCards(player.cards, dealer.cards);
+  cardsDealed = 1;
 
-  if (isBusted(player.handValue)) {
-    winner = 'dealer';
-    break;
+  while (!gameOver) {
+    let playerChoice = playerHitsOrStays();
+    console.clear();
+
+    if (playerChoice === 'stay') break;
+
+    player.cards = updateHand(player.cards, deck, cardsDealed);
+    player.handValue = handValue(player.cards);
+    displayCards(player.cards, dealer.cards);
+
+    if (isBusted(player.handValue)) {
+      gameOver = true;
+    }
   }
-}
 
-while ((!winner) && (dealer.handValue >= 17)) {
-  dealer.cards.push(dealCards(deck,cardsDealed));
-  dealer.handValue = handValue (dealer.cards);
-  if (isBusted(dealer.handValue)) {
-    winner = 'player';
-    break;
+  while ((!gameOver) && (dealer.handValue < 17)) {
+    dealer.cards = updateHand(dealer.cards, deck, cardsDealed);
+    dealer.handValue = handValue (dealer.cards);
+
+    if (isBusted(dealer.handValue)) {
+      gameOver = true;
+    }
   }
-}
+  let showAllDealerCards = true;
+  displayCards(player.cards, dealer.cards, showAllDealerCards);
 
-if (!winner) {
-  winner = closerTo21 (player.handValue, dealer.handValue);
-}
-console.log(`PLAYER:`);
-console.log(`   - CARDS: ${player.cards.join(', ')}`);
-console.log(`   - HAND VALUE: ${player.handValue}`);
+  displayHandsValue(player.handValue,dealer.handValue);
 
-console.log(`DEALER:`);
-console.log(`   - CARDS: ${dealer.cards.join(', ')}`);
-console.log(`   - HAND VALUE: ${dealer.handValue}`);
 
-if (winner === 'none') {
-  prompt (`IT'S A TIE!`);
-} else {
-  prompt(`${winner.toUpperCase()} WON!`);
-}
+  let winner = findWinner(player.handValue, dealer.handValue);
+  displayWinner(winner);
+} while (playAgain() === 'y');
+/*
+dealer's turn while loop condition fixed (<17)
+*/
