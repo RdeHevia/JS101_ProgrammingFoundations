@@ -1,9 +1,12 @@
 // question: ok side effects for function dealCards ()?
 let readline = require('readline-sync');
+
 function prompt (message) {
   console.log(`=> ${message}`);
 }
-
+function displaySectionSeparator () {
+  console.log('\n' + '-'.repeat(40) + '\n');
+}
 function welcomeScreen () {
   console.clear();
   console.log('WELCOME TO THE 21 GAME!\n');
@@ -11,6 +14,19 @@ function welcomeScreen () {
   prompt('Are you ready? Please press any key to start...');
   readline.question();
   console.clear();
+}
+
+function displayGameStageHeader(playerOrDealer) {
+  switch (playerOrDealer) {
+    case 'player':
+      console.log(`PLAYER'S TURN:`);
+      break;
+    case 'dealer':
+      console.log(`DEALER'S TURN:`);
+      break;
+    case 'gameOver':
+      console.log(`THE GAME IS OVER!`);
+  }
 }
 
 function displayCards (playerCards, dealerCards, showAllDealerCards = false) {
@@ -21,7 +37,6 @@ function displayCards (playerCards, dealerCards, showAllDealerCards = false) {
   } else {
     prompt(`Dealer: ${dealerCards[0]}, ?`);
   }
-  console.log('\n');
 }
 
 function initializeDeck () {
@@ -36,8 +51,8 @@ function initializeDeck () {
 
 function shuffle(array) {
   for (let index = array.length - 1; index > 0; index--) {
-    let otherIndex = Math.floor(Math.random() * (index + 1)); // 0 to index
-    [array[index], array[otherIndex]] = [array[otherIndex], array[index]]; // swap elements
+    let otherIndex = Math.floor(Math.random() * (index + 1));
+    [array[index], array[otherIndex]] = [array[otherIndex], array[index]];
   }
 }
 
@@ -52,41 +67,52 @@ function dealCards (deck, nbrOfCards) {
 function updateHand(currentHand, deck, nbrOfCardsDealed) {
   return [].concat(currentHand, dealCards(deck,nbrOfCardsDealed));
 }
-// eslint-disable-next-line max-lines-per-function
+
 function handValue (cards) {
+  let [aces, noAces] = separateAces(cards);
+
+  let sumNoAces = calcSumNoAces (noAces);
+
+  let totalSum;
+  for (
+    let nbrOfAcesEqualTo1 = 0;
+    (nbrOfAcesEqualTo1 <= aces.length);
+    nbrOfAcesEqualTo1 += 1
+  ) {
+    let sumAces = calcSumAces (aces, nbrOfAcesEqualTo1);
+    totalSum = sumNoAces + sumAces;
+    if (totalSum <= 21) break;
+  }
+  return totalSum;
+}
+
+function calcSumNoAces (noAcesCards) {
   const CARD_VALUES = {
-    Ace: {lessOrEqualTo21: 11, greaterThan21: 1},
     2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
     Jack: 10,
     Queen: 10,
     King: 10
   };
-  let [Aces, noAces] = separateAces(cards);
-  let sumNoAces = noAces.reduce(((sum,card) => sum + CARD_VALUES[card]),0);
-  let sumAces = Aces.reduce(((sum,card) => {
-    return sum + CARD_VALUES[card]['lessOrEqualTo21'];
-  }),0);
-  let totalSum = sumNoAces + sumAces;
-
-  for (let idx = 0; (idx < Aces.length) && (totalSum > 21); idx += 1) {
-    sumAces =
-      sumAces -
-      CARD_VALUES.Ace.lessOrEqualTo21 +
-      CARD_VALUES.Ace.greaterThan21;
-    totalSum = sumNoAces + sumAces;
-  }
-
-  return totalSum;
+  return noAcesCards.reduce(((sum,card) => sum + CARD_VALUES[card]),0);
 }
 
+function calcSumAces (acesCards, nbrOfAcesEqualTo1 = 0) {
+  const CARD_VALUES = {
+    Ace: [11, 1]
+  };
+  let nbrOfAcesEqualTo11 = acesCards.length - nbrOfAcesEqualTo1;
+  let sumAces =
+    (nbrOfAcesEqualTo11 * CARD_VALUES.Ace[0]) +
+    (nbrOfAcesEqualTo1 * CARD_VALUES.Ace[1]);
+  return sumAces;
+}
 function separateAces (cards) {
-  let Aces = cards.filter(card => card === 'Ace');
+  let aces = cards.filter(card => card === 'Ace');
   let noAces = cards.filter(card => card !== 'Ace');
-  return [Aces,noAces];
+  return [aces,noAces];
 }
 
 function playerHitsOrStays() {
-  console.log(`PLAYER'S TURN:`);
   prompt(`Do you want to hit (h) or stay (s) ?`);
   let choice = readline.question();
   switch (choice) {
@@ -142,9 +168,9 @@ function displayHandsValue (playerHandValue, dealerHandValue) {
     dealerBustedPrompt = '(busted)';
   }
   console.log(`FINAL HAND VALUES:`);
-  prompt(`   You:    ${playerHandValue} ${playerBustedPrompt}`);
+  prompt(`   You: ${playerHandValue} ${playerBustedPrompt}`);
   prompt(`Dealer: ${dealerHandValue}  ${dealerBustedPrompt}`);
-  console.log('');
+  //console.log('');
 }
 
 function playAgain () {
@@ -168,29 +194,35 @@ welcomeScreen();
 do {
   console.clear();
 
-  let player = {header: 'PLAYER'};
-  let dealer = {header: 'DEALER'};
+  let player = {};
+  let dealer = {};
   let gameOver = false;
   let deck = initializeDeck();
-  let cardsDealed = 2;
+  let nbrOfCardsDealed = 2;
 
-  player.cards = dealCards(deck,cardsDealed);
+  player.cards = dealCards(deck,nbrOfCardsDealed);
   player.handValue = handValue(player.cards);
 
-  dealer.cards = dealCards(deck, cardsDealed);
+  dealer.cards = dealCards(deck, nbrOfCardsDealed);
   dealer.handValue = handValue(dealer.cards);
+  displayGameStageHeader('player');
+  displaySectionSeparator();
   displayCards(player.cards, dealer.cards);
-  cardsDealed = 1;
+  displaySectionSeparator();
 
+  nbrOfCardsDealed = 1;
   while (!gameOver) {
     let playerChoice = playerHitsOrStays();
     console.clear();
 
     if (playerChoice === 'stay') break;
 
-    player.cards = updateHand(player.cards, deck, cardsDealed);
+    player.cards = updateHand(player.cards, deck, nbrOfCardsDealed);
     player.handValue = handValue(player.cards);
+    displayGameStageHeader('player');
+    displaySectionSeparator();
     displayCards(player.cards, dealer.cards);
+    displaySectionSeparator();
 
     if (isBusted(player.handValue)) {
       gameOver = true;
@@ -198,7 +230,7 @@ do {
   }
 
   while ((!gameOver) && (dealer.handValue < 17)) {
-    dealer.cards = updateHand(dealer.cards, deck, cardsDealed);
+    dealer.cards = updateHand(dealer.cards, deck, nbrOfCardsDealed);
     dealer.handValue = handValue (dealer.cards);
 
     if (isBusted(dealer.handValue)) {
@@ -206,14 +238,17 @@ do {
     }
   }
   let showAllDealerCards = true;
+  console.clear();
+  displayGameStageHeader('gameOver');
+  displaySectionSeparator();
   displayCards(player.cards, dealer.cards, showAllDealerCards);
+  displaySectionSeparator();
 
   displayHandsValue(player.handValue,dealer.handValue);
-
+  displaySectionSeparator();
 
   let winner = findWinner(player.handValue, dealer.handValue);
   displayWinner(winner);
+  displaySectionSeparator();
+
 } while (playAgain() === 'y');
-/*
-dealer's turn while loop condition fixed (<17)
-*/
