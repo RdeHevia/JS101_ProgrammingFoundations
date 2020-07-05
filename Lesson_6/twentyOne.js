@@ -1,6 +1,8 @@
 // question: ok side effects for function dealCards ()?
 let readline = require('readline-sync');
 
+const NBR_GAMES_PER_MATCH = 2;
+
 function prompt (message) {
   console.log(`=> ${message}`);
 }
@@ -10,7 +12,11 @@ function displaySectionSeparator () {
 function welcomeScreen () {
   console.clear();
   console.log('WELCOME TO THE 21 GAME!\n');
-  console.log('The player that gets closer to 21 without going over wins!\n\n');
+  console.log(
+    `The player that gets closer ` +
+    `to 21 without going over wins the game! ` +
+    `(Best of ${NBR_GAMES_PER_MATCH}) \n\n`
+  );
   prompt('Are you ready? Please press any key to start...');
   readline.question();
   console.clear();
@@ -48,8 +54,12 @@ function displayBoard (stageId, player, dealer) {
   }
 
   console.clear();
+  displayScore(player.score,dealer.score);
+  displaySectionSeparator();
+
   displayGameStageHeader(stageId);
   displaySectionSeparator();
+
   displayCards(player.cards, dealer.cards, showAllDealerCards);
   displaySectionSeparator();
 
@@ -148,7 +158,7 @@ function playerHitsOrStays() {
 }
 
 function dealerHits() {
-  prompt(`The dealer hits! Press any key to see the next card.`)
+  prompt(`The dealer hits! Press any key to see the next card.`);
   readline.question();
 }
 
@@ -184,6 +194,22 @@ function displayWinner (winner) {
   }
 }
 
+function updateScore(winner, player, dealer) {
+  switch (winner) {
+    case 'player':
+      player.score += 1;
+      break;
+    case 'dealer':
+      dealer.score += 1;
+      break;
+  }
+}
+
+function displayScore (playerScore, dealerScore) {
+  console.log(`SCORE (PLAYER : DEALER)`);
+  prompt(`${playerScore} : ${dealerScore}`);
+}
+
 function displayHandsValue (playerHandValue, dealerHandValue) {
   let playerBustedPrompt = '';
   let dealerBustedPrompt = '';
@@ -195,6 +221,30 @@ function displayHandsValue (playerHandValue, dealerHandValue) {
   console.log(`FINAL HAND VALUES:`);
   prompt(`   You: ${playerHandValue} ${playerBustedPrompt}`);
   prompt(`Dealer: ${dealerHandValue}  ${dealerBustedPrompt}`);
+}
+
+function wonTheMatch(score) {
+  return score === NBR_GAMES_PER_MATCH;
+}
+
+function findMatchWinner (playerScore, dealerScore) {
+  if (wonTheMatch(playerScore)) {
+    return 'player';
+  } else if (wonTheMatch(dealerScore)) {
+    return 'dealer';
+  } else {
+    return null;
+  }
+}
+
+function matchEnded (playerScore, dealerScore) {
+  return !!findMatchWinner(playerScore,dealerScore);
+}
+
+function nextRound () {
+  prompt('Press any key for next round');
+  readline.question();
+  console.clear();
 }
 
 function playAgain () {
@@ -215,11 +265,15 @@ function playAgain () {
 }
 
 welcomeScreen();
+let player = {};
+let dealer = {};
+[player.score, dealer.score] = [0, 0];
+
 do {
   console.clear();
 
-  let player = {};
-  let dealer = {};
+  //let player = {};
+  //let dealer = {};
   let gameOver = false;
   let deck = initializeDeck();
   let nbrOfCardsDealed = 2;
@@ -262,10 +316,11 @@ do {
       gameOver = true;
     }
   }
-  displayBoard('gameOver', player, dealer);
 
   let winner = findWinner(player.handValue, dealer.handValue);
+  updateScore(winner, player, dealer);
 
+  displayBoard('gameOver', player, dealer);
   displayWinner(winner);
   displaySectionSeparator();
 
