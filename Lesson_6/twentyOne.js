@@ -194,6 +194,10 @@ function displayWinner (winner) {
   }
 }
 
+function displayMatchWinner (matchWinner) {
+  prompt(`${matchWinner.toUpperCase()} WON THE MATCH!`);
+}
+
 function updateScore(winner, player, dealer) {
   switch (winner) {
     case 'player':
@@ -264,64 +268,74 @@ function playAgain () {
   return answer;
 }
 
-welcomeScreen();
-let player = {};
-let dealer = {};
-[player.score, dealer.score] = [0, 0];
-
 do {
-  console.clear();
+  welcomeScreen();
+  let player = {};
+  let dealer = {};
+  [player.score, dealer.score] = [0, 0];
 
-  //let player = {};
-  //let dealer = {};
-  let gameOver = false;
-  let deck = initializeDeck();
-  let nbrOfCardsDealed = 2;
+  while(true) {
+    console.clear();
 
-  player.cards = dealCards(deck,nbrOfCardsDealed);
-  player.handValue = handValue(player.cards);
+    //let player = {};
+    //let dealer = {};
+    let gameOver = false;
+    let deck = initializeDeck();
+    let nbrOfCardsDealed = 2;
 
-  dealer.cards = dealCards(deck, nbrOfCardsDealed);
-  dealer.handValue = handValue(dealer.cards);
-
-  displayBoard('playerTurn', player, dealer);
-
-  nbrOfCardsDealed = 1;
-  while (!gameOver) {
-    let playerChoice = playerHitsOrStays();
-    if (playerChoice === 'stay') break;
-
-    player.cards = updateHand(player.cards, deck, nbrOfCardsDealed);
+    player.cards = dealCards(deck,nbrOfCardsDealed);
     player.handValue = handValue(player.cards);
+
+    dealer.cards = dealCards(deck, nbrOfCardsDealed);
+    dealer.handValue = handValue(dealer.cards);
 
     displayBoard('playerTurn', player, dealer);
 
-    if (isBusted(player.handValue)) {
-      gameOver = true;
+    nbrOfCardsDealed = 1;
+    while (!gameOver) {
+      let playerChoice = playerHitsOrStays();
+      if (playerChoice === 'stay') break;
+
+      player.cards = updateHand(player.cards, deck, nbrOfCardsDealed);
+      player.handValue = handValue(player.cards);
+
+      displayBoard('playerTurn', player, dealer);
+
+      if (isBusted(player.handValue)) {
+        gameOver = true;
+      }
+    }
+
+    if (!gameOver) {
+      displayBoard('dealerTurn', player, dealer);
+    }
+    while ((!gameOver) && (dealer.handValue < 17)) {
+      dealerHits();
+
+      dealer.cards = updateHand(dealer.cards, deck, nbrOfCardsDealed);
+      dealer.handValue = handValue (dealer.cards);
+
+      displayBoard('dealerTurn', player, dealer);
+
+      if (isBusted(dealer.handValue)) {
+        gameOver = true;
+      }
+    }
+
+    let winner = findWinner(player.handValue, dealer.handValue);
+    updateScore(winner, player, dealer);
+
+    displayBoard('gameOver', player, dealer);
+    displayWinner(winner);
+    displaySectionSeparator();
+
+    if (!matchEnded(player.score,dealer.score)) {
+      nextRound();
+    } else {
+      displayMatchWinner(findMatchWinner(player.score, dealer.score));
+      displaySectionSeparator();
+      break;
     }
   }
-
-  if (!gameOver) {
-    displayBoard('dealerTurn', player, dealer);
-  }
-  while ((!gameOver) && (dealer.handValue < 17)) {
-    dealerHits();
-
-    dealer.cards = updateHand(dealer.cards, deck, nbrOfCardsDealed);
-    dealer.handValue = handValue (dealer.cards);
-
-    displayBoard('dealerTurn', player, dealer);
-
-    if (isBusted(dealer.handValue)) {
-      gameOver = true;
-    }
-  }
-
-  let winner = findWinner(player.handValue, dealer.handValue);
-  updateScore(winner, player, dealer);
-
-  displayBoard('gameOver', player, dealer);
-  displayWinner(winner);
-  displaySectionSeparator();
 
 } while (playAgain() === 'y');
