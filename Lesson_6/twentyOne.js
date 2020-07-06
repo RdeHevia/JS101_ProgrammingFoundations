@@ -1,7 +1,6 @@
-// question: ok side effects for function dealCards ()?
 let readline = require('readline-sync');
 
-const NBR_GAMES_PER_MATCH = 2;
+const NBR_GAMES_PER_MATCH = 5;
 
 function prompt (message) {
   console.log(`=> ${message}`);
@@ -9,6 +8,7 @@ function prompt (message) {
 function displaySectionSeparator () {
   console.log('\n' + '-'.repeat(40) + '\n');
 }
+
 function welcomeScreen () {
   console.clear();
   console.log('WELCOME TO THE 21 GAME!\n');
@@ -45,6 +45,19 @@ function displayCards (playerCards, dealerCards, showAllDealerCards = false) {
   }
 }
 
+function displayHandsValue (playerHandValue, dealerHandValue) {
+  let playerBustedPrompt = '';
+  let dealerBustedPrompt = '';
+  if (isBusted(playerHandValue)) {
+    playerBustedPrompt = '(busted)';
+  } else if (isBusted(dealerHandValue)) {
+    dealerBustedPrompt = '(busted)';
+  }
+  console.log(`FINAL HAND VALUES:`);
+  prompt(`   You: ${playerHandValue} ${playerBustedPrompt}`);
+  prompt(`Dealer: ${dealerHandValue}  ${dealerBustedPrompt}`);
+}
+
 function displayBoard (stageId, player, dealer) {
   let showAllDealerCards;
   if (stageId === 'playerTurn') {
@@ -70,6 +83,23 @@ function displayBoard (stageId, player, dealer) {
 
 }
 
+function displayWinner (winner) {
+  if (winner === 'none') {
+    prompt (`IT'S A TIE!`);
+  } else {
+    prompt(`${winner.toUpperCase()} WON!`);
+  }
+}
+
+function displayMatchWinner (matchWinner) {
+  prompt(`${matchWinner.toUpperCase()} WON THE MATCH!`);
+}
+
+function displayScore (playerScore, dealerScore) {
+  console.log(`SCORE (PLAYER : DEALER)`);
+  prompt(`${playerScore} : ${dealerScore}`);
+}
+
 function initializeDeck () {
   const SUIT = [
     'Ace', '2', '3', '4', '5', '6',
@@ -87,16 +117,12 @@ function shuffle(array) {
   }
 }
 
-function dealCards (deck, nbrOfCards) {
+function dealCards (playerOrDealer, deck, nbrOfCards) {
   let dealedCards = [];
   for (let idx = 0; idx < nbrOfCards; idx += 1) {
     dealedCards.push(deck.shift());
   }
-  return dealedCards;
-}
-
-function updateHand(currentHand, deck, nbrOfCardsDealed) {
-  return [].concat(currentHand, dealCards(deck,nbrOfCardsDealed));
+  playerOrDealer.cards.push(...dealedCards);
 }
 
 function handValue (cards) {
@@ -115,6 +141,12 @@ function handValue (cards) {
     if (totalSum <= 21) break;
   }
   return totalSum;
+}
+
+function separateAces (cards) {
+  let aces = cards.filter(card => card === 'Ace');
+  let noAces = cards.filter(card => card !== 'Ace');
+  return [aces,noAces];
 }
 
 function calcSumNoAces (noAcesCards) {
@@ -136,30 +168,6 @@ function calcSumAces (acesCards, nbrOfAcesEqualTo1 = 0) {
     (nbrOfAcesEqualTo11 * CARD_VALUES.Ace[0]) +
     (nbrOfAcesEqualTo1 * CARD_VALUES.Ace[1]);
   return sumAces;
-}
-function separateAces (cards) {
-  let aces = cards.filter(card => card === 'Ace');
-  let noAces = cards.filter(card => card !== 'Ace');
-  return [aces,noAces];
-}
-
-function playerHitsOrStays() {
-  prompt(`Do you want to hit (h) or stay (s) ?`);
-  let choice = readline.question();
-  switch (choice) {
-    case 'h':
-      return 'hit';
-    case 's':
-      return 'stay';
-    default:
-      prompt('Invalid choice. Please choose again.');
-      return playerHitsOrStays();
-  }
-}
-
-function dealerHits() {
-  prompt(`The dealer hits! Press any key to see the next card.`);
-  readline.question();
 }
 
 function isBusted(handValue) {
@@ -186,18 +194,6 @@ function findWinner (playerHandValue, dealerHandValue) {
   }
 }
 
-function displayWinner (winner) {
-  if (winner === 'none') {
-    prompt (`IT'S A TIE!`);
-  } else {
-    prompt(`${winner.toUpperCase()} WON!`);
-  }
-}
-
-function displayMatchWinner (matchWinner) {
-  prompt(`${matchWinner.toUpperCase()} WON THE MATCH!`);
-}
-
 function updateScore(winner, player, dealer) {
   switch (winner) {
     case 'player':
@@ -207,24 +203,6 @@ function updateScore(winner, player, dealer) {
       dealer.score += 1;
       break;
   }
-}
-
-function displayScore (playerScore, dealerScore) {
-  console.log(`SCORE (PLAYER : DEALER)`);
-  prompt(`${playerScore} : ${dealerScore}`);
-}
-
-function displayHandsValue (playerHandValue, dealerHandValue) {
-  let playerBustedPrompt = '';
-  let dealerBustedPrompt = '';
-  if (isBusted(playerHandValue)) {
-    playerBustedPrompt = '(busted)';
-  } else if (isBusted(dealerHandValue)) {
-    dealerBustedPrompt = '(busted)';
-  }
-  console.log(`FINAL HAND VALUES:`);
-  prompt(`   You: ${playerHandValue} ${playerBustedPrompt}`);
-  prompt(`Dealer: ${dealerHandValue}  ${dealerBustedPrompt}`);
 }
 
 function wonTheMatch(score) {
@@ -243,6 +221,25 @@ function findMatchWinner (playerScore, dealerScore) {
 
 function matchEnded (playerScore, dealerScore) {
   return !!findMatchWinner(playerScore,dealerScore);
+}
+
+function playerHitsOrStays() {
+  prompt(`Do you want to hit (h) or stay (s) ?`);
+  let choice = readline.question();
+  switch (choice) {
+    case 'h':
+      return 'hit';
+    case 's':
+      return 'stay';
+    default:
+      prompt('Invalid choice. Please choose again.');
+      return playerHitsOrStays();
+  }
+}
+
+function dealerHits() {
+  prompt(`The dealer hits! Press any key to see the next card.`);
+  readline.question();
 }
 
 function nextRound () {
@@ -274,19 +271,19 @@ do {
   let dealer = {};
   [player.score, dealer.score] = [0, 0];
 
-  while(true) {
+  while (true) {
     console.clear();
 
-    //let player = {};
-    //let dealer = {};
     let gameOver = false;
     let deck = initializeDeck();
-    let nbrOfCardsDealed = 2;
 
-    player.cards = dealCards(deck,nbrOfCardsDealed);
+    let nbrOfCardsDealed = 2;
+    [player.cards, dealer.cards] = [[],[]];
+
+    dealCards(player,deck,nbrOfCardsDealed);
     player.handValue = handValue(player.cards);
 
-    dealer.cards = dealCards(deck, nbrOfCardsDealed);
+    dealCards(dealer,deck,nbrOfCardsDealed);
     dealer.handValue = handValue(dealer.cards);
 
     displayBoard('playerTurn', player, dealer);
@@ -296,7 +293,7 @@ do {
       let playerChoice = playerHitsOrStays();
       if (playerChoice === 'stay') break;
 
-      player.cards = updateHand(player.cards, deck, nbrOfCardsDealed);
+      dealCards(player,deck,nbrOfCardsDealed);
       player.handValue = handValue(player.cards);
 
       displayBoard('playerTurn', player, dealer);
@@ -312,7 +309,7 @@ do {
     while ((!gameOver) && (dealer.handValue < 17)) {
       dealerHits();
 
-      dealer.cards = updateHand(dealer.cards, deck, nbrOfCardsDealed);
+      dealCards(dealer,deck,nbrOfCardsDealed);
       dealer.handValue = handValue (dealer.cards);
 
       displayBoard('dealerTurn', player, dealer);
