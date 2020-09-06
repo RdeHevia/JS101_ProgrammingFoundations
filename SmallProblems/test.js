@@ -1,3 +1,1 @@
-
-
-let flintstones = ["Fred", "Barney", "Wilma", "Betty", "Pebbles", "Bambam"];
+console.log(let a = (test) => 7);
