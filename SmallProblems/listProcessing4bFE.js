@@ -12,14 +12,18 @@ ALGORITHM:
     - Create a substring with the characters from 1 to N
     - Add the substring into the new array
   3. Return the array
+IMPLEMENTATION using map, filter or reduce.
+  1. 'abc' -> [a, b, c]
+  2. [].map (element => {
+    substring = substring + element
+    return substring
+  })
 */
 
-function leadingSubstrings(string) {
-  let arrayOfSubstrings = [];
-  for (let idx = 0; idx < string.length; idx += 1) {
-    arrayOfSubstrings.push(string.slice(0,idx + 1));
-  }
-  return arrayOfSubstrings;
+function leadingSubstrings (string) {
+  return string
+    .split('')
+    .map((_, idx) => string.slice(0, idx + 1));
 }
 
 console.log(leadingSubstrings('abc'));      // ["a", "ab", "abc"]

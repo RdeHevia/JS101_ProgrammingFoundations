@@ -1,7 +1,7 @@
 let readline =  require('readline-sync');
 
 const MARKER = {initial:' ', human:'X', computer:'O'};
-const NBR_GAMES_PER_MATCH = 2;
+const NBR_GAMES_PER_MATCH = 5;
 const PLAYER1_CONFIG = 'choose';   //'human', 'computer', 'choose'
 const DIFFICULTY_CONFIG = 'choose'; //'easy', 'medium', 'impossible', 'choose'
 function prompt (message) {
